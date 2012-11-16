@@ -20,42 +20,42 @@ import smbus,time
 
 class AdafruitLcd:
   # commands
-  LCD_CLEARDISPLAY=0x01
-  LCD_RETURNHOME=0x02
-  LCD_ENTRYMODESET=0x04
-  LCD_DISPLAYCONTROL=0x08
-  LCD_CURSORSHIFT=0x10
-  LCD_FUNCTIONSET=0x20
-  LCD_SETCGRAMADDR=0x40
-  LCD_SETDDRAMADDR=0x80
+  __CLEARDISPLAY=0x01
+  __RETURNHOME=0x02
+  __ENTRYMODESET=0x04
+  __DISPLAYCONTROL=0x08
+  __CURSORSHIFT=0x10
+  __FUNCTIONSET=0x20
+  __SETCGRAMADDR=0x40
+  __SETDDRAMADDR=0x80
 
   # flags for display entry mode
-  LCD_ENTRYRIGHT=0x00
-  LCD_ENTRYLEFT=0x02
-  LCD_ENTRYSHIFTINCREMENT=0x01
-  LCD_ENTRYSHIFTDECREMENT=0x00
+  __ENTRYRIGHT=0x00
+  __ENTRYLEFT=0x02
+  __ENTRYSHIFTINCREMENT=0x01
+  __ENTRYSHIFTDECREMENT=0x00
 
   # flags for display on/off control
-  LCD_DISPLAYON=0x04
-  LCD_DISPLAYOFF=0x00
-  LCD_CURSORON=0x02
-  LCD_CURSOROFF=0x00
-  LCD_BLINKON=0x01
-  LCD_BLINKOFF=0x00
+  __DISPLAYON=0x04
+  __DISPLAYOFF=0x00
+  __CURSORON=0x02
+  __CURSOROFF=0x00
+  __BLINKON=0x01
+  __BLINKOFF=0x00
 
   # flags for display/cursor shift
-  LCD_DISPLAYMOVE=0x08
-  LCD_CURSORMOVE=0x00
-  LCD_MOVERIGHT=0x04
-  LCD_MOVELEFT=0x00
+  __DISPLAYMOVE=0x08
+  __CURSORMOVE=0x00
+  __MOVERIGHT=0x04
+  __MOVELEFT=0x00
 
   # flags for function set
-  LCD_8BITMODE=0x10
-  LCD_4BITMODE=0x00
-  LCD_2LINE=0x08
-  LCD_1LINE=0x00
-  LCD_5x10DOTS=0x04
-  LCD_5x8DOTS=0x00
+  __8BITMODE=0x10
+  __4BITMODE=0x00
+  __2LINE=0x08
+  __1LINE=0x00
+  __5x10DOTS=0x04
+  __5x8DOTS=0x00
 
 
   _rs=0x02
@@ -92,24 +92,32 @@ class AdafruitLcd:
   def __init__(self):
     self.__bus=smbus.SMBus(0)
     self.__bus.write_byte_data(0x20,0x00,0x00)
-    self.__data=0x80
-    self.__displayfunction = self.LCD_4BITMODE | self.LCD_2LINE | self.LCD_5x8DOTS
-
+    self.__displayfunction = self.__4BITMODE | self.__2LINE | self.__5x8DOTS
+    self.__data = 0
     self.writeFourBits(0x03)
     time.sleep(0.005)
     self.writeFourBits(0x03)
     time.sleep(0.00015)
     self.writeFourBits(0x03)
     self.writeFourBits(0x02)
-    self.writeCommand(self.LCD_FUNCTIONSET | self.__displayfunction)
-    self.writeCommand(self.LCD_DISPLAYCONTROL | self.LCD_DISPLAYON | self.LCD_CURSORON | self.LCD_BLINKON)
+    self.writeCommand(self.__FUNCTIONSET | self.__displayfunction)
+    self.writeCommand(self.__DISPLAYCONTROL | self.__DISPLAYON | self.__CURSORON | self.__BLINKON)
     self.writeCommand(0x6)
-    self.writeCommand(self.LCD_CLEARDISPLAY)
+    self.writeCommand(self.__CLEARDISPLAY)
     time.sleep(0.002)
+
+  def setBacklight(self,value):
+    if value:
+      self.__data |= 0x80
+    else:
+      self.__data &= 0x7f
+    self.__bus.write_byte_data(0x20,0x09,self.__data)
 
 
 if __name__ == '__main__':
   lcd = AdafruitLcd()
+  
+  lcd.setBacklight(True)
   lcd.writeData(0x48)
   lcd.writeData(0x65)
   lcd.writeData(0x6C)
@@ -118,3 +126,5 @@ if __name__ == '__main__':
   lcd.writeData(0x20)
   lcd.writeData(0x52)
   lcd.writeData(0x6F)
+  time.sleep(1)
+  lcd.setBacklight(False)
