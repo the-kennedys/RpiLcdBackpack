@@ -14,7 +14,11 @@
 #    You should have received a copy of the GNU General Public License
 #    along with Foobar.  If not, see <http://www.gnu.org/licenses/>.#
 
-import smbus,time
+import smbus,time, sys, termios, tty
+from subprocess import * 
+from time import sleep, strftime
+from datetime import datetime
+
 
 
 
@@ -93,6 +97,7 @@ class AdafruitLcd:
     self.__bus=smbus.SMBus(0)
     self.__bus.write_byte_data(0x20,0x00,0x00)
     self.__displayfunction = self.__4BITMODE | self.__2LINE | self.__5x8DOTS
+    self.__displaycontrol = self.__DISPLAYCONTROL | self.__DISPLAYON | self.__CURSORON | self.__BLINKON
     self.__data = 0
     self.writeFourBits(0x03)
     time.sleep(0.005)
@@ -101,10 +106,9 @@ class AdafruitLcd:
     self.writeFourBits(0x03)
     self.writeFourBits(0x02)
     self.writeCommand(self.__FUNCTIONSET | self.__displayfunction)
-    self.writeCommand(self.__DISPLAYCONTROL | self.__DISPLAYON | self.__CURSORON | self.__BLINKON)
+    self.writeCommand(self.__displaycontrol)
     self.writeCommand(0x6)
-    self.writeCommand(self.__CLEARDISPLAY)
-    time.sleep(0.002)
+    self.clear()
 
   def setBacklight(self,value):
     if value:
@@ -114,17 +118,52 @@ class AdafruitLcd:
     self.__bus.write_byte_data(0x20,0x09,self.__data)
 
 
+  def clear(self):
+    self.writeCommand(self.__CLEARDISPLAY)
+    time.sleep(0.002)
+
+  def noBlink(self):
+    self.__displaycontrol &= ~self.__BLINKON
+    self.writeCommand(self.__displaycontrol)
+
+  def blink(self):
+    self.__displaycontrol |= self.__BLINKON
+    self.writeCommand(self.__displaycontrol)
+
+  def noCursor(self):
+    self.__displaycontrol &= ~self.__CURSORON
+    self.writeCommand(self.__displaycontrol)
+
+  def cursor(self):
+    self.__displaycontrol |= self.__CURSORON
+    self.writeCommand(self.__displaycontrol)
+
+  def message(self, text):
+    for char in text:
+      if char == '\n':
+        self.writeCommand(0xC0)
+      else:
+        self.writeData(ord(char))
+
 if __name__ == '__main__':
   lcd = AdafruitLcd()
   
   lcd.setBacklight(True)
-  lcd.writeData(0x48)
-  lcd.writeData(0x65)
-  lcd.writeData(0x6C)
-  lcd.writeData(0x6C)
-  lcd.writeData(0x6F)
-  lcd.writeData(0x20)
-  lcd.writeData(0x52)
-  lcd.writeData(0x6F)
-  time.sleep(1)
-  lcd.setBacklight(False)
+  lcd.noBlink()
+  lcd.noCursor()
+
+
+  cmd = "ip addr show eth0 | grep inet | awk '{print $2}' | cut -d/ -f1"
+
+  def run_cmd(cmd):
+    p = Popen(cmd, shell=True, stdout=PIPE)
+    output = p.communicate()[0]
+    return output
+
+  while 1:
+    lcd.clear()
+    ipaddr = run_cmd(cmd)
+    lcd.message(datetime.now().strftime('%b %d  %H:%M:%S\n'))
+    lcd.message('IP %s' % ( ipaddr ) )
+    sleep(2)
+
