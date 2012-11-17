@@ -110,8 +110,8 @@ class AdafruitLcd:
     self.writeCommand(0x6)
     self.clear()
 
-  def setBacklight(self,value):
-    if value:
+  def backlight(self,on):
+    if on:
       self.__data |= 0x80
     else:
       self.__data &= 0x7f
@@ -122,20 +122,22 @@ class AdafruitLcd:
     self.writeCommand(self.__CLEARDISPLAY)
     time.sleep(0.002)
 
-  def noBlink(self):
-    self.__displaycontrol &= ~self.__BLINKON
-    self.writeCommand(self.__displaycontrol)
 
-  def blink(self):
-    self.__displaycontrol |= self.__BLINKON
+  def blink(self, on):
+    if on:
+      self.__displaycontrol |= self.__BLINKON
+    else:
+      self.__displaycontrol &= ~self.__BLINKON
     self.writeCommand(self.__displaycontrol)
 
   def noCursor(self):
-    self.__displaycontrol &= ~self.__CURSORON
     self.writeCommand(self.__displaycontrol)
 
-  def cursor(self):
-    self.__displaycontrol |= self.__CURSORON
+  def cursor(self, on):
+    if on:
+      self.__displaycontrol |= self.__CURSORON
+    else:
+      self.__displaycontrol &= ~self.__CURSORON
     self.writeCommand(self.__displaycontrol)
 
   def message(self, text):
@@ -145,25 +147,4 @@ class AdafruitLcd:
       else:
         self.writeData(ord(char))
 
-if __name__ == '__main__':
-  lcd = AdafruitLcd()
-  
-  lcd.setBacklight(True)
-  lcd.noBlink()
-  lcd.noCursor()
-
-
-  cmd = "ip addr show eth0 | grep inet | awk '{print $2}' | cut -d/ -f1"
-
-  def run_cmd(cmd):
-    p = Popen(cmd, shell=True, stdout=PIPE)
-    output = p.communicate()[0]
-    return output
-
-  while 1:
-    lcd.clear()
-    ipaddr = run_cmd(cmd)
-    lcd.message(datetime.now().strftime('%b %d  %H:%M:%S\n'))
-    lcd.message('IP %s' % ( ipaddr ) )
-    sleep(2)
 
