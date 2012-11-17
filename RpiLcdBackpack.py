@@ -14,7 +14,7 @@
 #    You should have received a copy of the GNU General Public License
 #    along with Foobar.  If not, see <http://www.gnu.org/licenses/>.#
 
-import smbus,time, sys, termios, tty
+import smbus,time
 from subprocess import * 
 from time import sleep, strftime
 from datetime import datetime
