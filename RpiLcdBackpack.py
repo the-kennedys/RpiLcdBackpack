@@ -94,7 +94,7 @@ class AdafruitLcd:
     self.writeFourBits(value&0xf)
 
   def __init__(self):
-    self.__bus=smbus.SMBus(0)
+    self.__bus=smbus.SMBus(1)
     self.__bus.write_byte_data(0x20,0x00,0x00)
     self.__displayfunction = self.__4BITMODE | self.__2LINE | self.__5x8DOTS
     self.__displaycontrol = self.__DISPLAYCONTROL | self.__DISPLAYON | self.__CURSORON | self.__BLINKON
@@ -141,9 +141,16 @@ class AdafruitLcd:
     self.writeCommand(self.__displaycontrol)
 
   def message(self, text):
+    x=0
     for char in text:
       if char == '\n':
-        self.writeCommand(0xC0)
+        if x == 0:
+          self.writeCommand(0xC0)
+        elif x == 1:
+          self.writeCommand(0x94)
+        else:
+          self.writeCommand(0xD4)
+        x+=1
       else:
         self.writeData(ord(char))
 

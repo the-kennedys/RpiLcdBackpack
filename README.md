@@ -9,3 +9,4 @@ https://github.com/adafruit/Adafruit-Raspberry-Pi-Python-Code/tree/master/Adafru
 
 This is using an MCP23008 IO expander to drive the pins on an HD44780 LCD driver
 
+I modified the code to work with 20x4 LCD displays.
